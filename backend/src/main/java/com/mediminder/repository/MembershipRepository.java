@@ -13,6 +13,4 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
     List<Membership> findByCareCircleIdOrderByJoinedAt(Long careCircleId);
 
     List<Membership> findByUserIdOrderByJoinedAt(Long userId);
-
-    boolean existsByUserIdAndCareCircleId(Long userId, Long careCircleId);
 }

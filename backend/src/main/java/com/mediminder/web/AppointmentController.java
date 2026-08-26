@@ -36,9 +36,4 @@ public class AppointmentController {
     public AppointmentDto claim(@PathVariable Long id, @AuthenticationPrincipal User user) {
         return plannerService.claimAppointment(id, user);
     }
-
-    @DeleteMapping("/appointments/{id}")
-    public void delete(@PathVariable Long id, @AuthenticationPrincipal User user) {
-        plannerService.deleteAppointment(id, user);
-    }
 }

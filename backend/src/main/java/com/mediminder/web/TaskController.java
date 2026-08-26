@@ -41,9 +41,4 @@ public class TaskController {
     public TaskDto complete(@PathVariable Long id, @AuthenticationPrincipal User user) {
         return plannerService.completeTask(id, user);
     }
-
-    @DeleteMapping("/tasks/{id}")
-    public void delete(@PathVariable Long id, @AuthenticationPrincipal User user) {
-        plannerService.deleteTask(id, user);
-    }
 }

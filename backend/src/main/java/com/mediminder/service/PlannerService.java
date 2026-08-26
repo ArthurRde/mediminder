@@ -63,13 +63,6 @@ public class PlannerService {
         return AppointmentDto.from(loadAppointment(appointmentId));
     }
 
-    @Transactional
-    public void deleteAppointment(Long appointmentId, User user) {
-        Appointment appointment = loadAppointment(appointmentId);
-        guard.requireMember(appointment.getCareCircle().getId(), user);
-        appointmentRepository.delete(appointment);
-    }
-
     public List<TaskDto> tasks(Long circleId, User user) {
         guard.requireMember(circleId, user);
         return taskRepository.findByCareCircleIdOrderByDueDate(circleId).stream()
@@ -109,13 +102,6 @@ public class PlannerService {
             task.setAssignedTo(user);
         }
         return TaskDto.from(taskRepository.save(task));
-    }
-
-    @Transactional
-    public void deleteTask(Long taskId, User user) {
-        Task task = loadTask(taskId);
-        guard.requireMember(task.getCareCircle().getId(), user);
-        taskRepository.delete(task);
     }
 
     private Appointment loadAppointment(Long id) {
