@@ -17,6 +17,7 @@ export default function MedicationsPage() {
   const [medications, setMedications] = useState<Medication[]>([])
   const [editing, setEditing] = useState<Medication | 'new' | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [confirmingId, setConfirmingId] = useState<number | null>(null)
 
   const load = useCallback(async () => {
     setMedications(await api.get<Medication[]>(`/circles/${circle!.id}/medications`))
@@ -41,9 +42,20 @@ export default function MedicationsPage() {
     }
   }
 
+  // Erster Klick fragt nach, erst der zweite deaktiviert wirklich
   const deactivate = async (medication: Medication) => {
-    await api.delete(`/circles/${circle!.id}/medications/${medication.id}`)
-    await load()
+    if (confirmingId !== medication.id) {
+      setConfirmingId(medication.id)
+      return
+    }
+    setConfirmingId(null)
+    setError(null)
+    try {
+      await api.delete(`/circles/${circle!.id}/medications/${medication.id}`)
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Deaktivieren fehlgeschlagen')
+    }
   }
 
   return (
@@ -60,6 +72,7 @@ export default function MedicationsPage() {
           key={medication.id}
           medication={medication}
           isAdmin={isAdmin}
+          confirming={confirmingId === medication.id}
           onEdit={() => setEditing(medication)}
           onDeactivate={() => deactivate(medication)}
         />
@@ -85,11 +98,13 @@ export default function MedicationsPage() {
 function MedicationCard({
   medication,
   isAdmin,
+  confirming,
   onEdit,
   onDeactivate,
 }: {
   medication: Medication
   isAdmin: boolean
+  confirming: boolean
   onEdit: () => void
   onDeactivate: () => void
 }) {
@@ -108,7 +123,7 @@ function MedicationCard({
               Bearbeiten
             </button>
             <button className="btn btn-ghost danger" onClick={onDeactivate}>
-              Deaktivieren
+              {confirming ? 'Wirklich deaktivieren?' : 'Deaktivieren'}
             </button>
           </>
         )}

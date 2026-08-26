@@ -11,6 +11,7 @@ export default function CirclePage() {
   const [detail, setDetail] = useState<CircleDetail | null>(null)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [confirmingId, setConfirmingId] = useState<number | null>(null)
 
   const load = useCallback(async () => {
     setDetail(await api.get<CircleDetail>(`/circles/${circle!.id}`))
@@ -32,7 +33,13 @@ export default function CirclePage() {
     }
   }
 
+  // Erster Klick fragt nach, erst der zweite entfernt wirklich
   const removeMember = async (userId: number) => {
+    if (confirmingId !== userId) {
+      setConfirmingId(userId)
+      return
+    }
+    setConfirmingId(null)
     setError(null)
     try {
       await api.delete(`/circles/${circle!.id}/members/${userId}`)
@@ -71,7 +78,7 @@ export default function CirclePage() {
           </span>
           {isAdmin && member.userId !== user?.id && (
             <button className="btn btn-ghost danger" onClick={() => removeMember(member.userId)}>
-              Entfernen
+              {confirmingId === member.userId ? 'Wirklich entfernen?' : 'Entfernen'}
             </button>
           )}
         </div>
