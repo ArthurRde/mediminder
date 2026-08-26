@@ -24,9 +24,19 @@ function RequireAuth() {
 }
 
 function TabLayout() {
-  const { circle, loading } = useCircle()
+  const { circle, loading, error, refresh } = useCircle()
   if (loading) {
     return <div className="app centered">Lade…</div>
+  }
+  if (error) {
+    return (
+      <div className="app centered">
+        <p className="error">{error}</p>
+        <button className="btn btn-primary" onClick={() => refresh()}>
+          Erneut versuchen
+        </button>
+      </div>
+    )
   }
   if (!circle) {
     return <Navigate to="/onboarding" replace />

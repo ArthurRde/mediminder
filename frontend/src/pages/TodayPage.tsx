@@ -27,14 +27,21 @@ export default function TodayPage() {
   const { circle } = useCircle()
   const [data, setData] = useState<TodayResponse | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
+  // Polling-Fehler bei vorhandenen Daten ignorieren, der nächste Poll kommt eh
   const load = useCallback(async () => {
-    setData(await api.get<TodayResponse>(`/circles/${circle!.id}/today`))
+    try {
+      setData(await api.get<TodayResponse>(`/circles/${circle!.id}/today`))
+      setLoadError(null)
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : 'Tagesplan konnte nicht geladen werden.')
+    }
   }, [circle])
 
   useEffect(() => {
-    load().catch(() => undefined)
-    const id = setInterval(() => load().catch(() => undefined), POLL_INTERVAL_MS)
+    load()
+    const id = setInterval(load, POLL_INTERVAL_MS)
     return () => clearInterval(id)
   }, [load])
 
@@ -48,7 +55,7 @@ export default function TodayPage() {
         setNotice(err.message)
       }
     }
-    await load().catch(() => undefined)
+    await load()
   }
 
   const confirmIntake = (intake: Intake) => handle(() => api.post(`/intake-events/${intake.id}/confirm`))
@@ -58,7 +65,19 @@ export default function TodayPage() {
 
   const completeTask = (task: Task) => handle(() => api.post(`/tasks/${task.id}/done`))
 
-  if (!data) return <p>Lade Tagesplan…</p>
+  if (!data) {
+    if (loadError) {
+      return (
+        <>
+          <p className="error">{loadError}</p>
+          <button className="btn btn-primary" onClick={() => load()}>
+            Erneut versuchen
+          </button>
+        </>
+      )
+    }
+    return <p>Lade Tagesplan…</p>
+  }
 
   const timeline = buildTimeline(data)
   const openTasks = data.tasks.filter((task) => task.status === 'OPEN')

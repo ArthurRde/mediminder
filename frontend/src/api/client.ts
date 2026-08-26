@@ -17,7 +17,7 @@ export class ApiError extends Error {
   status: number
   body: Record<string, unknown>
 
-  constructor(status: number, body: Record<string, unknown>) {
+  constructor(status: number, body: Record<string, unknown> | undefined) {
     super(typeof body?.message === 'string' ? body.message : `Fehler ${status}`)
     this.status = status
     this.body = body ?? {}
@@ -30,14 +30,24 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   if (token) headers.Authorization = `Bearer ${token}`
   if (body !== undefined) headers['Content-Type'] = 'application/json'
 
-  const response = await fetch(`/api${path}`, {
-    method,
-    headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
-  })
+  let response: Response
+  try {
+    response = await fetch(`/api${path}`, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    })
+  } catch {
+    throw new ApiError(0, { message: 'Server nicht erreichbar. Bitte Verbindung prüfen.' })
+  }
 
   const text = await response.text()
-  const data = text ? JSON.parse(text) : undefined
+  let data: Record<string, unknown> | undefined
+  try {
+    data = text ? JSON.parse(text) : undefined
+  } catch {
+    data = undefined
+  }
   if (!response.ok) {
     // Session abgelaufen, zurück zum Login. Bei /auth heißt 401 nur falsche Zugangsdaten.
     if (response.status === 401 && !path.startsWith('/auth')) {
