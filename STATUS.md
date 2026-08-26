@@ -1,6 +1,6 @@
 # STATUS.md – Umsetzungsstand MediMinder MVP
 
-Stand: 26.08.2026, nach der Stabilisierungs-Runde für den Kern-Workflow. Grundlage: Code-Review, Backend-Tests (`./mvnw test`, 14 von 14 grün), Frontend-Build (`npm run build` ohne Fehler) und ein kompletter manueller Durchlauf des Abnahmetests per curl gegen das laufende System auf frischer Datenbank, mit zwei User-Sessions.
+Stand: 26.08.2026, nach der Stabilisierungs-Runde für den Kern-Workflow und der Testabdeckungs-Runde. Grundlage: Code-Review, Backend-Tests (`./mvnw test`, 27 von 27 grün), Frontend-Build (`npm run build` ohne Fehler) und ein kompletter manueller Durchlauf des Abnahmetests per curl gegen das laufende System auf frischer Datenbank, mit zwei User-Sessions.
 
 ## 1. MVP-Kernfunktionen
 
@@ -30,13 +30,15 @@ Farbwelt, Mobile-First (max. 480 px), Bottom-Tabs, JWT im Authorization-Header, 
 
 Hinweis: Der Testdurchlauf hat die Seed-Daten verändert (Bestand, Termin-Zuweisung, dritter User). Für eine frische Demo `docker compose down -v`, dann neu starten. Der Seed läuft bei leerer DB automatisch.
 
-## 3. In dieser Runde behoben
+## 3. In den Stabilisierungs-Runden behoben
 
 1. 401-Handling im Frontend. Eine abgelaufene oder ungültige Session wird zentral im API-Client erkannt, Token und User werden verworfen, es geht zurück zum Login. Vorher landete ein abgelaufener User im Onboarding und konnte dort verwaiste Zweit-Kreise anlegen.
 2. Active-Filter für die Tagesansicht. Offene Events deaktivierter Medikamente oder Schedules erscheinen nicht mehr als fällig, was bei abgesetzten Medikamenten fachlich heikel war. Bestätigte bleiben sichtbar. Zwei neue Integrationstests.
 3. Die 403-Testlücke ist geschlossen. `MedicationAccessTest` deckt create, update und deactivate als MEMBER sowie den Zugriff als Nicht-Mitglied ab.
 4. Tote DELETE-Endpunkte für Termine und Aufgaben entfernt, inklusive einer ungenutzten Repository-Methode. Begründung in SCOPE.md.
 5. Destruktive Aktionen abgesichert: Medikament deaktivieren und Mitglied entfernen haben eine zweistufige Rückfrage im Button und Fehlerbehandlung.
+6. Kritische Logiken testabgedeckt, insgesamt 27 Tests. Tagesplan-Generierung (Idempotenz, Chronologie, Wochentags- und Active-Filter für Medikamente und Schedules), overdue-Flag deterministisch als Unit-Test mit Grenzfall bei 30 Minuten, Confirm-Konfliktfall (200 mit Bestand minus 1, 409 mit confirmedBy und confirmedAt, keine doppelte Reduktion, nie unter 0). Bei den Berechtigungen bekommt der MEMBER am Medikationsplan 403, ein Nicht-Mitglied bei jedem Zugriff auf fremde Kreise: Tagesplan, Kreis-Detail, Einladung, Termine und Aufgaben lesen, anlegen, übernehmen, abhaken, Medikation ändern.
+7. Frontend defensiv gehärtet. Netzwerkfehler erscheinen als verständliche Meldung ("Server nicht erreichbar...") statt als roher Fetch-Fehler. Schlägt das Laden des Pflegekreises fehl, gibt es eine Fehlermeldung mit "Erneut versuchen" statt eines falschen Onboarding-Redirects. Die Tagesansicht zeigt bei einem Erstladefehler einen Retry an statt dauerhaft "Lade...". Ein abgelaufenes Token führt weiterhin zentral zum Login-Redirect.
 
 ## 4. Bekannte offene Punkte (bewusst zurückgestellt, siehe auch SCOPE.md)
 
