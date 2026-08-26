@@ -6,7 +6,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/${POSTGRES_DB:mediminder}
     username: ${POSTGRES_USER:mediminder}
-    password: ${POSTGRES_PASSWORD}
+    password: ${POSTGRES_PASSWORD:mediminder}
   jpa:
     hibernate:
       ddl-auto: update
@@ -17,5 +17,6 @@ server:
 
 mediminder:
   jwt:
-    secret: ${MEDIMINDER_JWT_SECRET}
+    # Dev-Default, für Produktion per Umgebungsvariable überschreiben
+    secret: ${MEDIMINDER_JWT_SECRET:i/CzAqa85UZ1XGBj064DCjHPzNi10pgycTdzbJW0qfBMXHKSxNd6X9BzsWGpvG+M}
     expiration-ms: 86400000
