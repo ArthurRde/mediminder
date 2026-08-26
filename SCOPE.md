@@ -32,6 +32,7 @@ Entscheidungen unterhalb der Funktionsebene, die den Scope real geprägt haben:
 | Kein Migrationstool (Flyway/Liquibase), stattdessen `ddl-auto: update` | bewusst weggelassen | Für einen Prototyp mit Seed-Daten und `docker compose down -v` als Reset ausreichend. Das Risiko ist bekannt: Bei Schema-Drift auf einem alten Volume könnte der Unique-Constraint fehlen. Das atomare Update bleibt als zweite Schutzebene wirksam. |
 | Ein Pflegekreis pro Nutzer im UI (Backend erlaubt mehrere Mitgliedschaften) | bewusst vereinfacht | Das Szenario (eine Familie, ein Pflegekreis) braucht kein Multi-Circle-UI. Bekannte Inkonsistenz: Der Beitritt zu einem zweiten Kreis gelingt, angezeigt wird weiter der erste. Dokumentiert statt gebaut. |
 | Tagesansicht zeigt nur Aufgaben mit Fälligkeit = heute (keine überfälligen von gestern) | bewusst vereinfacht | Spec-konform umgesetzt. Die Überfällig-Logik gilt nur für Einnahmen, wo sie fachlich kritisch ist (Doppelgabe, vergessene Gabe). Überfällige Aufgaben bleiben im Kalender-Tab sichtbar. |
+| DELETE-Endpunkte für Termine/Aufgaben entfernt (26.08.2026) | bewusst entfernt | Standen nicht in der Spezifikation, wurden vom UI nie aufgerufen und erlaubten jedem MEMBER das Löschen fremder Einträge. Entfernt statt abgesichert: kein UI-Bedarf, und ein toter, falsch berechtigter Endpunkt ist ein Risiko ohne Nutzen. Löschen von Terminen und Aufgaben wäre bei Bedarf eine Ausbaustufe. |
 
 ## Leitprinzip der Priorisierung
 
