@@ -77,6 +77,21 @@ class TodayServiceTest extends IntegrationTestSupport {
     }
 
     @Test
+    void erzeugtKeineEventsFuerDeaktivierteSchedules() {
+        User sabine = user("Sabine", "sabine6@test.de");
+        CareCircle circle = circle("Familie Test");
+        member(circle, sabine, Role.ADMIN);
+        var medication = medication(circle, "Pausiertes Medikament", "5 mg", 5, LocalTime.of(8, 0));
+        medication.getSchedules().get(0).setActive(false);
+        medicationRepository.save(medication);
+
+        TodayResponse response = todayService.getToday(circle.getId(), sabine);
+
+        assertTrue(response.intakes().isEmpty());
+        assertEquals(0, eventRepository.count());
+    }
+
+    @Test
     void offeneEventsDeaktivierterMedikamenteVerschwinden() {
         User sabine = user("Sabine", "sabine4@test.de");
         CareCircle circle = circle("Familie Test");

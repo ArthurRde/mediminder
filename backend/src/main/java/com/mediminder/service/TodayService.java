@@ -70,17 +70,18 @@ public class TodayService {
     }
 
     private List<IntakeDto> intakes(Long circleId, LocalDate date) {
+        LocalDateTime now = LocalDateTime.now();
         return eventRepository.findByCircleIdAndDate(circleId, date).stream()
-                .map(event -> IntakeDto.from(event, isOverdue(event)))
+                .map(event -> IntakeDto.from(event, isOverdue(event, now)))
                 .toList();
     }
 
-    private boolean isOverdue(IntakeEvent event) {
+    static boolean isOverdue(IntakeEvent event, LocalDateTime now) {
         if (event.getStatus() != IntakeStatus.OPEN) {
             return false;
         }
         LocalDateTime due = event.getDate().atTime(event.getSchedule().getTimeOfDay());
-        return LocalDateTime.now().isAfter(due.plusMinutes(OVERDUE_AFTER));
+        return now.isAfter(due.plusMinutes(OVERDUE_AFTER));
     }
 
     private List<AppointmentDto> appointments(Long circleId, LocalDate date) {
