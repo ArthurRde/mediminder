@@ -1,8 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
-import { api, setToken } from '../api/client'
+import { api, setToken, USER_KEY } from '../api/client'
 import type { AuthResponse, UserDto } from '../api/types'
-
-const USER_KEY = 'mediminder.user'
 
 interface AuthContextValue {
   user: UserDto | null

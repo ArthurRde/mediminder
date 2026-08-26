@@ -1,4 +1,5 @@
 const TOKEN_KEY = 'mediminder.token'
+export const USER_KEY = 'mediminder.user'
 
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY)
@@ -38,6 +39,12 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   const text = await response.text()
   const data = text ? JSON.parse(text) : undefined
   if (!response.ok) {
+    // Session abgelaufen, zurück zum Login. Bei /auth heißt 401 nur falsche Zugangsdaten.
+    if (response.status === 401 && !path.startsWith('/auth')) {
+      setToken(null)
+      localStorage.removeItem(USER_KEY)
+      window.location.assign('/login')
+    }
     throw new ApiError(response.status, data)
   }
   return data as T
