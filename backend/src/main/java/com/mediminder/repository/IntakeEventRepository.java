@@ -17,10 +17,13 @@ public interface IntakeEventRepository extends JpaRepository<IntakeEvent, Long> 
 
     Optional<IntakeEvent> findByScheduleIdAndDate(Long scheduleId, LocalDate date);
 
+    // Offene Events deaktivierter Medikamente/Schedules ausblenden, bestätigte bleiben Historie
     @Query("""
             select e from IntakeEvent e
             where e.schedule.medication.careCircle.id = :circleId
               and e.date = :date
+              and (e.status = com.mediminder.model.IntakeStatus.CONFIRMED
+                   or (e.schedule.active = true and e.schedule.medication.active = true))
             order by e.schedule.timeOfDay, e.schedule.medication.name
             """)
     List<IntakeEvent> findByCircleIdAndDate(@Param("circleId") Long circleId, @Param("date") LocalDate date);

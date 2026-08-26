@@ -23,6 +23,8 @@ class TodayServiceTest extends IntegrationTestSupport {
     @Autowired
     private TodayService todayService;
     @Autowired
+    private IntakeService intakeService;
+    @Autowired
     private IntakeEventRepository eventRepository;
 
     @Test
@@ -72,5 +74,39 @@ class TodayServiceTest extends IntegrationTestSupport {
 
         assertTrue(response.intakes().isEmpty());
         assertEquals(0, eventRepository.count());
+    }
+
+    @Test
+    void offeneEventsDeaktivierterMedikamenteVerschwinden() {
+        User sabine = user("Sabine", "sabine4@test.de");
+        CareCircle circle = circle("Familie Test");
+        member(circle, sabine, Role.ADMIN);
+        var medication = medication(circle, "Altmedikament", "5 mg", 5, LocalTime.of(8, 0));
+        todayService.getToday(circle.getId(), sabine);
+
+        medication.setActive(false);
+        medicationRepository.save(medication);
+
+        TodayResponse response = todayService.getToday(circle.getId(), sabine);
+
+        assertTrue(response.intakes().isEmpty());
+    }
+
+    @Test
+    void bestaetigteEventsDeaktivierterMedikamenteBleibenSichtbar() {
+        User sabine = user("Sabine", "sabine5@test.de");
+        CareCircle circle = circle("Familie Test");
+        member(circle, sabine, Role.ADMIN);
+        var medication = medication(circle, "Altmedikament", "5 mg", 5, LocalTime.of(8, 0));
+        Long eventId = todayService.getToday(circle.getId(), sabine).intakes().get(0).id();
+        intakeService.confirm(eventId, sabine);
+
+        medication.setActive(false);
+        medicationRepository.save(medication);
+
+        TodayResponse response = todayService.getToday(circle.getId(), sabine);
+
+        assertEquals(1, response.intakes().size());
+        assertEquals("Sabine", response.intakes().get(0).confirmedBy());
     }
 }
